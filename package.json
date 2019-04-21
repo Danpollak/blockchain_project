@@ -1,0 +1,10 @@
+{
+  "name": "blockchain",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1",
+    "fully-connected-topology": "^1.1.1"
+  }
+}

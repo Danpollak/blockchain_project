@@ -36,6 +36,15 @@ class Blockchain {
         newBlock.hash = newBlock.calculateHash();
         this.chain.push(newBlock);
     }
+    
+    createSPV() {
+        let spv = this.chain.map((block) => {
+            let newBlock =  Object.assign( Object.create( Object.getPrototypeOf(Block)), block)
+            newBlock.transactions = null;
+            return newBlock
+        })
+        return spv;
+    }
 }
 
 module.exports.Blockchain = Blockchain;

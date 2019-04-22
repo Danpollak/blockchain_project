@@ -1,11 +1,14 @@
+const {MerkleTree} = require("./merkletree.js")
 const SHA256 = require("crypto-js/sha256");
 
+
 class Block {
-    constructor(index, timestamp, data, previousHash = '') {
+    constructor(index, timestamp, transactions, previousHash = '') {
         this.index = index;
         this.previousHash = previousHash;
         this.timestamp = timestamp;
-        this.data = data;
+        this.root = new MerkleTree(transactions).getRoot();
+        this.transactions = transactions;
         this.hash = this.calculateHash();
     }
 

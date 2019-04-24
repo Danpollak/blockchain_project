@@ -21,11 +21,50 @@ const transactions = [
         to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
         amount: '0.5'
     },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '0.6'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '0.7'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '1'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '8000'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '7634'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '13'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '66'
+    },
+    {
+        from: 'C96415006F908B674800B7026505CD718DBB4111FE858DC549FDBA5A365178C6',
+        to: '327A7380D2CC7CF09ED5820E1ECDB8ABE585D696B5B5526986DFEBE70ACEC59E',
+        amount: '2'
+    }
 ]
 
-const firstBlock = new Block(0, "01/01/2018", transactions.slice(0,1), "0")
-const secondBlock = new Block(1, "02/01/2018", transactions.slice(0,2), "0")
-const thirdBlock = new Block(2, "02/01/2018", transactions.slice(0,3), "0")
-const fourthBlock = new Block(2, "02/01/2018", transactions.slice(0,3), "0")
+const firstBlock = new Block(0, "01/01/2018", transactions.slice(0,4), "0")
+const secondBlock = new Block(1, "02/01/2018", transactions.slice(4,8), "0")
+const thirdBlock = new Block(2, "02/01/2018", transactions.slice(8,12), "0")
 
-module.exports.BlockData = {firstBlock, secondBlock, thirdBlock, fourthBlock};
+module.exports.BlockData = {firstBlock, secondBlock, thirdBlock};

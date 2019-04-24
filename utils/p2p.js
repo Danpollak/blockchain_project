@@ -1,3 +1,4 @@
+const { hashFn } = require('../src/merkletree');
 // const {
 //     stdin,
 //     exit,
@@ -76,7 +77,16 @@ function extractMessageToSpecificPeer(message) {
     return message.slice(5, message.length);
 }
 
+const validateTransaction = (root, transaction, proof) => {
+    let result = hashFn(transaction);
+    while(proof.length > 0){
+        let proofHash = proof.shift();
+        result = proofHash[0] == 'left' ? hashFn(proofHash[1] + result) : hashFn(result + proofHash[1])
+    }
+    return root === result;
+}
 
+module.exports.validateTransaction = validateTransaction;
 module.exports.toLocalIp = toLocalIp;
 module.exports.getPeerIps = getPeerIps; 
 module.exports.extractPortFromIp = extractPortFromIp;

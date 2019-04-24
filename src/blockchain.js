@@ -7,13 +7,13 @@ class Block {
         this.index = index;
         this.previousHash = previousHash;
         this.timestamp = timestamp;
-        this.root = new MerkleTree(transactions).getRoot();
+        this.root = new MerkleTree(transactions);
         this.transactions = transactions;
         this.hash = this.calculateHash();
     }
 
     calculateHash() {
-        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.transactions)).toString();
     }
 
 }
@@ -36,11 +36,13 @@ class Blockchain {
         newBlock.hash = newBlock.calculateHash();
         this.chain.push(newBlock);
     }
-    
+
+    //NOTE: what with root? MerkleTree gets NULL in transactions? what happens?
     createSPV() {
         let spv = this.chain.map((block) => {
             let newBlock =  Object.assign( Object.create( Object.getPrototypeOf(Block)), block)
             newBlock.transactions = null;
+            newBlock.root = block.root.getRoot();
             return newBlock
         })
         return spv;

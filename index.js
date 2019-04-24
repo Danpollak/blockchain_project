@@ -1,6 +1,6 @@
 const { Blockchain } = require('./src/blockchain')
 const { BlockData } = require('./src/blockdata')
-const { toLocalIp, getPeerIps, extractPortFromIp, compileMessage } = require('./utils/p2p')
+const { toLocalIp, getPeerIps, extractPortFromIp, compileMessage, validateTransaction } = require('./utils/p2p')
 const topology = require('fully-connected-topology')
 
 const FULL_NODE_TYPE = 'FULL'
@@ -36,8 +36,10 @@ if(!me){
     return
 }
 let sockets = {}
+let varificationRequest = null;
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
+console.log(SPVchain)
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     
     const peerPort = extractPortFromIp(peerIp)
@@ -60,6 +62,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
             socket.write(message)
         }
         else if(parsedMessage.type === 'VERIFY') {
+            varificationRequest = parsedMessage.data;
             sockets[FULL_NODE_PORT].write(message)
         } else {
             console.error("Message not recognized")
@@ -81,15 +84,35 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 sockets[sender].write(compileMessage("ERROR: INVALID VERIFICATION PARAMS",me))
                 return;
             }
-
             console.log("starting verification process for SPV " + message.sender)
             // TODO: Add verification function
+            //NOTE: i related on the fact that message.Data is an array: [block_hash, transaction_hash]
+            let blockIndex = 0;
+            console.log(messageData)
+            while(myChain.chain[blockIndex].hash !== messageData[0]){
+                console.log(myChain.chain[blockIndex])
+                blockIndex++;
+            }
+            let proof = myChain.chain[blockIndex].root.getProof(messageData[1]);
+            console.log(proof, JSON.stringify(proof))
+            sockets[sender].write(compileMessage("PROOF:"+ JSON.stringify(proof), me));
         }
         if(message.type === 'PROOF'){
+            console.log("Got proof!")
+            const varificationData = varificationRequest.split(' ');
             // TODO: do proof verification
+            //NOTE: i relate on the fact that message.Data is an array which is a merkel path
+            let block = 0;
+            while(myChain[block].hash !== varificationData[0]){
+                block++;
+            }
+            console.log(varificationData)
+            console.log(varificationData[1])
+            let result = validateTransaction(myChain[block].root, varificationData[1], JSON.parse(message.data[0]));
+            console.log("Result of proof is:"+ result);
         }
     })
 })
 
-
-
+//2) Notice that there's no exception handeling in this code (88 row for example)
+// ADD exception handeling

@@ -154,7 +154,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 return;
             }
 
-            console.log("starting verification process for SPV " + message.sender)
+            console.log("starting verification process for SPV " + sender)
             
             // translate from block hash to index hash
             let blockIndex = 0;

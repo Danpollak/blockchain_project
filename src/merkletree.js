@@ -14,7 +14,7 @@ class MerkleTree {
 
     buildTree(transactions) {
         // compute the tree height
-        let height = Math.ceil(Math.log2(transactions.length)) + 1;
+        const height = Math.ceil(Math.log2(transactions.length)) + 1;
         // Init a array with enough space for all the leafs and nodes
         let tree = Array(Math.pow(2,height));
         tree.fill(0);
@@ -32,10 +32,11 @@ class MerkleTree {
         // regress through the tree and hash nodes till root
         index = tree.length/2 -1;
         let iterator = Math.floor(index /2);
+        const firstParents = Math.pow(2,height-2)-1
         while (index !== 0){
             while(iterator < index){
                 //only for leaves parent nodes
-                if(iterator > Math.floor((tree.length/2 -1) / 2)){
+                if(index > firstParents){
                     tree[iterator] = hashFn(tree[iterator*2+1][0] + tree[iterator*2+2][0])
                     iterator++;
                 } else {
@@ -52,21 +53,23 @@ class MerkleTree {
     // NOTE: this function should be activated on a specific 
     // merkel tree in a specific block (within a full node)
     getProof(transactionHash) {
-        // convert transaction index to tree index
+        // convert transaction hash into tree index
         let transectionIndex = this.tree.length/2 -1;
         while(transactionHash != this.tree[transectionIndex][0]){
             transectionIndex++;
-            console.log("in first while")
+            // if the has was not found, return false as it does not belong in this treee
+            if(transectionIndex >= this.tree.length){
+                return false
+            }
         }
         let treeIndex = transectionIndex;
         let proof = [];
+        // Each step, look for the sibiling node and push it, with respect to its relative position
         if (treeIndex % 2 == 1) {
             if(this.tree[treeIndex+1] == 0){
                 proof.push(['right', 0])
             treeIndex = Math.floor(treeIndex /2)
             } else {
-                console.log(this.tree, treeIndex)
-                console.log(this.tree[treeIndex+1])
                 proof.push(['right',this.tree[treeIndex+1][0]])
                 treeIndex = Math.floor(treeIndex /2)
             }
@@ -75,7 +78,6 @@ class MerkleTree {
             treeIndex = Math.floor(treeIndex /2) -1
         }
         while (treeIndex != 0){
-            // take the parent hash and push it to proof till arriving to root
             if (treeIndex % 2 == 1) {
                 proof.push(['right',this.tree[treeIndex+1]])
                 treeIndex = Math.floor(treeIndex /2)
@@ -83,7 +85,6 @@ class MerkleTree {
                 proof.push(['left',this.tree[treeIndex-1]])
                 treeIndex = Math.floor(treeIndex /2) -1
             }
-            console.log("in second while")
         }
         return proof;
     }
@@ -92,15 +93,6 @@ class MerkleTree {
         return this.tree[0];
     }
 }
-
-// const arr = [1,2,3,4,5];
-// let test = new MerkleTree(arr);
-// console.log(test.tree)
-// let testProof = test.getProof(2)
-// console.log(test.getRoot());
-// console.log(testProof)
-// console.log(hashFn(hashFn(3) + testProof[0][1]))
-// console.log(validateTransaction(test.tree[0],arr[2],testProof))
 
 module.exports.hashFn = hashFn;
 module.exports.MerkleTree = MerkleTree;

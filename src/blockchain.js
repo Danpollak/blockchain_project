@@ -1,7 +1,6 @@
 const {MerkleTree} = require("./merkletree.js")
 const SHA256 = require("crypto-js/sha256");
 
-
 class Block {
     constructor(index, timestamp, transactions, previousHash = '') {
         this.index = index;
@@ -24,7 +23,7 @@ class Blockchain {
 
     }
     createGenesis() {
-        return new Block(0, "01/01/2018", "genesis block", "0");
+        return new Block(0, "01/01/2018", [{from: 'gensis', to: 'gensis', amount: '0'}], "0");
 
     }
     getLatestBlock() {
@@ -37,7 +36,6 @@ class Blockchain {
         this.chain.push(newBlock);
     }
 
-    //NOTE: what with root? MerkleTree gets NULL in transactions? what happens?
     createSPV() {
         let spv = this.chain.map((block) => {
             let newBlock =  Object.assign( Object.create( Object.getPrototypeOf(Block)), block)

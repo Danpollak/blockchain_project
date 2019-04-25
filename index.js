@@ -129,10 +129,9 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     })
 
     /** RECIVING MESSAGES */
-    socket.on('data', data =>  {
+    socket.on('data', message =>  {
         // parse message to treat it as JSON
-        message = JSON.parse(data)
-        const {sender, data, type } = message;
+        const {sender, data, type } = JSON.parse(message);
 
         // handle error message - print data string in error stdout
         if(type === 'ERROR'){

@@ -1,5 +1,6 @@
 const { Blockchain } = require('./src/blockchain')
 const { BlockData } = require('./src/blockdata')
+//const { bloomFilter } = require('./src/bloomFilter')
 const { toLocalIp, getPeerIps, extractPortFromIp, compileMessage, validateTransaction } = require('./utils')
 const topology = require('fully-connected-topology')
 
@@ -79,7 +80,22 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 console.error("Full nodes do not support VERIFY")
                 return;
             }
-            varificationRequest = parsedMessage.data;
+            let transactionHash = parsedMessage.data[0];
+            let blocks = [];
+            let blockIndex = 0;
+            while(blockIndex < myChain.length && myChain[blockIndex]){
+                if(myChain[blockIndex].bloomFilter.query(transactionHash)){
+                    blocks.push(myChain[blockIndex].hash)
+                    console.log(myChain[blockIndex].bloomFilter.bitArr)
+                }
+                blockIndex++;
+            }
+            console.log(myChain)
+            console.log(blocks)
+            varificationRequest = parsedMessage.data.concat(blocks);
+            console.log(validateTransaction)
+            message = JSON.stringify({ type: parsedMessage.type, data: varificationRequest, sender: me})
+            console.log(message)
             sockets[FULL_NODE_PORT].write(message)
 
         // Handle print messages.
@@ -147,52 +163,64 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         if(type === 'VERIFY'){
             // turn the data into array
             const messageData = data.split(' ');
+            console.log(messageData)
 
             //  verify enough data arrived to  verification process
-            if(messageData.length < 2){
+            if(messageData.length < 1){
                 sockets[sender].write(compileMessage("ERROR: INVALID VERIFICATION PARAMS",me))
                 return;
             }
 
             console.log("starting verification process for SPV " + sender)
             
-            // translate from block hash to index hash
-            let blockIndex = 0;
-            while(blockIndex < myChain.chain.length && myChain.chain[blockIndex].hash !== messageData[0]){
-                blockIndex++;
-            }
+            let findBlock = 1;
+            while(messageData[findBlock]){
+                // translate from block hash to index hash
+                let blockIndex = 0;
+                while(blockIndex < myChain.chain.length && myChain.chain[blockIndex].hash !== messageData[findBlock]){
+                    blockIndex++;
+                }
 
-            // if did not find block, send error
-            if(blockIndex == myChain.chain.length){
-                sockets[sender].write(compileMessage("ERROR: Block hash not found", me));
-                return;
-            }
+                // if did not find block, send error
+                if(blockIndex == myChain.chain.length){
+                    sockets[sender].write(compileMessage("ERROR: Block hash number:" + messageData[findBlock]
+                    + " was not found", me));
+                    //NOTE: do we want to return if only one block is not found? or maybe write
+                    //continue and move to the next block?
+                    return;
+                }
 
-            // create merkle proof
-            let proof = myChain.chain[blockIndex].root.getProof(messageData[1]);
+                // create merkle proof
+                let proof = myChain.chain[blockIndex].root.getProof(messageData[0]);
 
-            if(proof){
-                // send merkle proof as PROOF message
-                sockets[sender].write(compileMessage("PROOF:"+ JSON.stringify(proof), me));
-            } else {
-                // if did not find transaction hash, send error
-                sockets[sender].write(compileMessage("ERROR: transaction was not found in block", me));  
+                if(proof){
+                    // send merkle proof as PROOF message
+                    sockets[sender].write(compileMessage("PROOF:"+ JSON.stringify(proof) + findBlock, me));
+                    return;
+                }
+                // if didn't find the transection in this block =>
+                // move to the next block - continue in the while loop
+                findBlock++;
             }
+            // if did not find transaction hash, send error
+            sockets[sender].write(compileMessage("ERROR: transaction was not found in block", me));
         }
 
         // handle merkle proof messages
         if(type === 'PROOF'){
+
+            const messageData = data.split(' ');
 
             // use the varification data that was sent
             const varificationData = varificationRequest.split(' ');
             let block = 0;
 
             // look up the block hash (must be valid since it was sent)
-            while(myChain[block].hash !== varificationData[0]){
+            while(myChain[block].hash !== varificationData[messageData[1]]){
                 block++;
             }
             // validate transaction
-            const result = validateTransaction(myChain[block].root, varificationData[1], JSON.parse(data));
+            const result = validateTransaction(myChain[block].root, varificationData[1], JSON.parse(messageData[0]));
             console.log(result ? "The Transaction exists in the blockchain" : "The transaction is not valid");
         }
     })

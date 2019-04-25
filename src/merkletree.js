@@ -57,7 +57,7 @@ class MerkleTree {
         let transectionIndex = this.tree.length/2 -1;
         while(transactionHash != this.tree[transectionIndex][0]){
             transectionIndex++;
-            // if the has was not found, return false as it does not belong in this treee
+            // if the hash was not found, return false as it does not belong in this tree
             if(transectionIndex >= this.tree.length){
                 return false
             }

@@ -1,5 +1,7 @@
-const {MerkleTree} = require("./merkletree.js")
+const {MerkleTree , hashFn} = require("./merkletree.js")
+const { BloomFilter } = require("../src/BloomFilter")
 const SHA256 = require("crypto-js/sha256");
+
 
 class Block {
     constructor(index, timestamp, transactions, previousHash = '') {
@@ -9,6 +11,7 @@ class Block {
         this.root = new MerkleTree(transactions);
         this.transactions = transactions;
         this.hash = this.calculateHash();
+        this.bloomFilter = new BloomFilter(this.transactions.map(x => hashFn(x)));
     }
 
     calculateHash() {
@@ -41,6 +44,7 @@ class Blockchain {
             let newBlock =  Object.assign( Object.create( Object.getPrototypeOf(Block)), block)
             newBlock.transactions = null;
             newBlock.root = block.root.getRoot();
+            newBlock.bloomFilter = block.bloomFilter;
             return newBlock
         })
         return spv;

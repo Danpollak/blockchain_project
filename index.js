@@ -42,7 +42,7 @@ if(!me){
 
 /** NETWORK SETUP */
 let sockets = {}
-let varificationRequest = null;
+let varificationRequest = [];
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
 console.log("Connection to network...")
@@ -80,22 +80,19 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 console.error("Full nodes do not support VERIFY")
                 return;
             }
-            let transactionHash = parsedMessage.data[0];
+            let transactionHash = parsedMessage.data;
             let blocks = [];
             let blockIndex = 0;
             while(blockIndex < myChain.length && myChain[blockIndex]){
                 if(myChain[blockIndex].bloomFilter.query(transactionHash)){
                     blocks.push(myChain[blockIndex].hash)
-                    console.log(myChain[blockIndex].bloomFilter.bitArr)
                 }
                 blockIndex++;
             }
-            console.log(myChain)
-            console.log(blocks)
-            varificationRequest = parsedMessage.data.concat(blocks);
-            console.log(validateTransaction)
-            message = JSON.stringify({ type: parsedMessage.type, data: varificationRequest, sender: me})
-            console.log(message)
+            varificationRequest = [];
+            varificationRequest.push(parsedMessage.data);
+            varificationRequest = varificationRequest.concat(blocks);
+            message = JSON.stringify({ type: parsedMessage.type, data: varificationRequest.toString(), sender: me})
             sockets[FULL_NODE_PORT].write(message)
 
         // Handle print messages.
@@ -130,10 +127,13 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                     console.error("SPV Nodes won't hold merkle trees")
                 }
                 else {
+                    //NOTE: block index is 0-2 so i added 1 to avoid printing the wrong block
+                    // block 0 is not gensis but the first block
                     if(!messageData[1]){
                         console.error("specify block index")
                     } else {
-                        console.log(myChain.chain[messageData[1]].root)
+                        let index = parseInt(messageData[1], 10) + 1;
+                        console.log(myChain.chain[index].root)
                     }
                 }
             }
@@ -162,8 +162,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         // handle verification messages
         if(type === 'VERIFY'){
             // turn the data into array
-            const messageData = data.split(' ');
-            console.log(messageData)
+            const messageData = data.split(',');
 
             //  verify enough data arrived to  verification process
             if(messageData.length < 1){
@@ -183,7 +182,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
 
                 // if did not find block, send error
                 if(blockIndex == myChain.chain.length){
-                    sockets[sender].write(compileMessage("ERROR: Block hash number:" + messageData[findBlock]
+                    sockets[sender].write(compileMessage("ERROR: Block hash number - " + messageData[findBlock]
                     + " was not found", me));
                     //NOTE: do we want to return if only one block is not found? or maybe write
                     //continue and move to the next block?
@@ -194,8 +193,9 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 let proof = myChain.chain[blockIndex].root.getProof(messageData[0]);
 
                 if(proof){
-                    // send merkle proof as PROOF message
-                    sockets[sender].write(compileMessage("PROOF:"+ JSON.stringify(proof) + findBlock, me));
+                    // send merkle proof as PROOF message + block index it was 
+                    sockets[sender].write(compileMessage("PROOF:"+ JSON.stringify(proof) + " " + findBlock, me));
+                    console.log("sent proof for SPV " + sender)
                     return;
                 }
                 // if didn't find the transection in this block =>
@@ -212,15 +212,16 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
             const messageData = data.split(' ');
 
             // use the varification data that was sent
-            const varificationData = varificationRequest.split(' ');
+            const varificationData = varificationRequest;
             let block = 0;
 
             // look up the block hash (must be valid since it was sent)
-            while(myChain[block].hash !== varificationData[messageData[1]]){
+            while(myChain[block].hash != varificationData[messageData[1]]){
                 block++;
             }
+
             // validate transaction
-            const result = validateTransaction(myChain[block].root, varificationData[1], JSON.parse(messageData[0]));
+            const result = validateTransaction(myChain[block].root, varificationData[0], JSON.parse(messageData[0]));
             console.log(result ? "The Transaction exists in the blockchain" : "The transaction is not valid");
         }
     })

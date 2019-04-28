@@ -29,7 +29,6 @@ class BloomFilter {
          // in this index to be 1
          let index = 0;
          while (transections[index]){
-             console.log(getArrIndex(transections[index]));
              arr[getArrIndex(transections[index])] = 1;
              this.amount++;
              index++;

@@ -89,6 +89,8 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 }
                 blockIndex++;
             }
+
+            varificationRequest = [];
             varificationRequest.push(parsedMessage.data);
             varificationRequest = varificationRequest.concat(blocks);
             message = JSON.stringify({ type: parsedMessage.type, data: varificationRequest.toString(), sender: me})
@@ -126,10 +128,13 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                     console.error("SPV Nodes won't hold merkle trees")
                 }
                 else {
+                    //NOTE: block index is 0-2 so i added 1 to avoid printing the wrong block
+                    // block 0 is not gensis but the first block
                     if(!messageData[1]){
                         console.error("specify block index")
                     } else {
-                        console.log(myChain.chain[messageData[1]].root)
+                        let index = parseInt(messageData[1], 10) + 1;
+                        console.log(myChain.chain[index].root)
                     }
                 }
             }
@@ -178,7 +183,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
 
                 // if did not find block, send error
                 if(blockIndex == myChain.chain.length){
-                    sockets[sender].write(compileMessage("ERROR: Block hash number:" + messageData[findBlock]
+                    sockets[sender].write(compileMessage("ERROR: Block hash number - " + messageData[findBlock]
                     + " was not found", me));
                     //NOTE: do we want to return if only one block is not found? or maybe write
                     //continue and move to the next block?
@@ -215,6 +220,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
             while(myChain[block].hash != varificationData[messageData[1]]){
                 block++;
             }
+
             // validate transaction
             const result = validateTransaction(myChain[block].root, varificationData[0], JSON.parse(messageData[0]));
             console.log(result ? "The Transaction exists in the blockchain" : "The transaction is not valid");

@@ -13,25 +13,28 @@ class BloomFilter {
         // determined the size of the bit array to 200 
         // so it's optimal (0.02% max of FP) for 1 hash
         // function and maximum 4 elements incoded in it
-        this.size = 200;
-        this.amount = 0;
+        this.size;
+        this.amount;
     }
 
     //create BF bit array given the transections to embed in it
     calcBitArray(transections) {
+        this.size = 200;
+        this.amount = 0;
         //compute the BF bit array using the hash - SHA256
-        let bitArr = Array(this.size);
+        let arr = Array(this.size);
         // all indecies are initialied to 0
-        bitArr.fill(0);
+        arr.fill(0);
          // calculate all transections index and update the bit array
          // in this index to be 1
          let index = 0;
          while (transections[index]){
-             bitArr[getArrIndex(transections[index])] = 1;
+             console.log(getArrIndex(transections[index]));
+             arr[getArrIndex(transections[index])] = 1;
              this.amount++;
              index++;
          }
-        return bitArr;
+        return arr;
     }
 
     query(transection){

@@ -49,9 +49,4 @@ class BloomFilter {
     }
 }
 
-//
-const validate  = (bitArr) => {
-    let currentBlock = lastBlock;
-}
-
 module.exports.BloomFilter = BloomFilter;

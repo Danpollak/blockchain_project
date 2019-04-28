@@ -89,6 +89,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
                 }
                 blockIndex++;
             }
+
             varificationRequest = [];
             varificationRequest.push(parsedMessage.data);
             varificationRequest = varificationRequest.concat(blocks);

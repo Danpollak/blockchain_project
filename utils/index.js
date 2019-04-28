@@ -24,7 +24,6 @@ const validateTransaction = (root, transaction, proof) => {
     let result = transaction;
     while(proof.length > 0){
         let proofHash = proof.shift();
-        console.log(proofHash[1])
         result = proofHash[0] == 'left' ? hashFn(proofHash[1] + result) : hashFn(result + proofHash[1])
     }
     return root === result;
